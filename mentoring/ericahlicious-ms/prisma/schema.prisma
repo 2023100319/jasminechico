@@ -1,0 +1,153 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  SUPERVISOR
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderType {
+  DINE_IN
+  TAKE_OUT
+}
+
+enum StockStatus {
+  GOOD
+  LOW
+  OUT_OF_STOCK
+}
+
+enum UserStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model User {
+  id          Int        @id @default(autoincrement())
+  name        String
+  username    String     @unique
+  password    String
+  role        Role
+  status      UserStatus @default(ACTIVE)
+  lastActive  DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  orders           Order[]
+  transactions     Transaction[]
+  inventoryUpdates InventoryItem[] @relation("UpdatedBy")
+}
+
+model MenuCategory {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  menuItems MenuItem[]
+}
+
+model MenuItem {
+  id          Int              @id @default(autoincrement())
+  name        String
+  price       Decimal          @db.Decimal(10, 2)
+  imageUrl    String?
+  isArchived  Boolean          @default(false)
+  categoryId  Int
+  category    MenuCategory     @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[]
+  ingredients MenuIngredient[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model MenuIngredient {
+  id         Int      @id @default(autoincrement())
+  menuItemId Int
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  name       String
+}
+
+model InventoryCategory {
+  id    Int             @id @default(autoincrement())
+  name  String          @unique
+  items InventoryItem[]
+}
+
+model InventoryItem {
+  id          Int               @id @default(autoincrement())
+  name        String
+  stock       String
+  supplier    String?
+  expiry      DateTime?
+  status      StockStatus       @default(GOOD)
+  categoryId  Int
+  category    InventoryCategory @relation(fields: [categoryId], references: [id])
+  updatedById Int?
+  updatedBy   User?             @relation("UpdatedBy", fields: [updatedById], references: [id])
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  orderCode   String      @unique
+  tableNum    String?
+  type        OrderType   @default(DINE_IN)
+  status      OrderStatus @default(PENDING)
+  total       Decimal     @db.Decimal(10, 2)
+  isPaid      Boolean     @default(false)
+  createdById Int?
+  createdBy   User?       @relation(fields: [createdById], references: [id])
+  items       OrderItem[]
+  payment     Payment?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId Int
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity   Int      @default(1)
+}
+
+model Payment {
+  id      Int      @id @default(autoincrement())
+  orderId Int      @unique
+  order   Order    @relation(fields: [orderId], references: [id])
+  amount  Decimal  @db.Decimal(10, 2)
+  paidAt  DateTime @default(now())
+}
+
+model Transaction {
+  id            Int      @id @default(autoincrement())
+  filename      String
+  generatedAt   DateTime @default(now())
+  generatedById Int?
+  generatedBy   User?    @relation(fields: [generatedById], references: [id])
+}
+
+model DailyExpense {
+  id        Int      @id @default(autoincrement())
+  amount    Decimal  @db.Decimal(10, 2)
+  date      DateTime
+  note      String?
+  createdAt DateTime @default(now())
+}
