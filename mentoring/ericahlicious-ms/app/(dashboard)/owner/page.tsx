@@ -4,6 +4,10 @@ import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { TopMenuItems } from "@/components/dashboard/TopMenuItems";
 import { InventoryStatus } from "@/components/dashboard/InventoryStatus";
 import { DecisionInsights } from "@/components/dashboard/DecisionInsights";
+import { StockHealthWidget } from "@/components/dashboard/StockHealthWidget";
+import { TurnoverWidget } from "@/components/dashboard/TurnoverWidget";
+import { CostAnalysisWidget } from "@/components/dashboard/CostAnalysisWidget";
+import { ReorderRecommendationsWidget } from "@/components/dashboard/ReorderRecommendationsWidget";
 import { DollarSign, ShoppingBag, TrendingUp, Users } from "lucide-react";
 
 export default async function OwnerDashboard() {
@@ -101,6 +105,24 @@ export default async function OwnerDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InventoryStatus items={inventoryItems} />
         <DecisionInsights lowStockItems={lowStockItems} />
+      </div>
+
+      {/* Decision Support Analytics Section */}
+      <div className="mt-8 pt-8 border-t border-slate-200">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-slate-900">Decision Support Analytics</h2>
+          <p className="text-sm text-slate-500 mt-1">Inventory insights and recommendations</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <StockHealthWidget />
+          <TurnoverWidget />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <CostAnalysisWidget />
+          <ReorderRecommendationsWidget />
+        </div>
       </div>
     </div>
   );
