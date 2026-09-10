@@ -51,7 +51,7 @@ export default async function OwnerDashboard() {
   const inventoryItems = await prisma.inventoryItem.findMany({
     include: { category: true, updatedBy: { select: { name: true } } }
   });
-  const lowStockItems = inventoryItems.filter(i => i.status === "LOW" || i.status === "OUT_OF_STOCK");
+  const lowStockItems = inventoryItems.filter((i: { status: string }) => i.status === "LOW" || i.status === "OUT_OF_STOCK");
 
   return (
     <div className="space-y-6">

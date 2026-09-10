@@ -45,32 +45,32 @@ export async function GET(req: Request) {
     });
 
     // Create a map for quick lookup
-    const movementMap = new Map(
-      movements.map((m) => [
+    const movementMap = new Map<number, { count: number; totalChange: number }>(
+      movements.map((m: any) => [
         m.inventoryItemId,
-        { count: m._count, totalChange: m._sum.change || 0 },
+        { count: m._count, totalChange: Number(m._sum.change ?? 0) },
       ])
     );
 
     // Build turnover data
     const turnoverData = items
-      .map((item) => ({
+      .map((item: typeof items[number]) => ({
         id: item.id,
         name: item.name,
         category: item.category.name,
         currentStock: item.stock,
         reorderLevel: item.reorderLevel,
         unitCost: item.unitCost,
-        salesCount: movementMap.get(item.id)?.count || 0,
-        totalSalesQty: Math.abs(movementMap.get(item.id)?.totalChange || 0),
+        salesCount: movementMap.get(item.id)?.count ?? 0,
+        totalSalesQty: Math.abs(movementMap.get(item.id)?.totalChange ?? 0),
       }))
-      .sort((a, b) => b.salesCount - a.salesCount);
+      .sort((a: any, b: any) => b.salesCount - a.salesCount);
 
     // Get top 10 fastest moving
     const topMovers = turnoverData.slice(0, 10);
 
     // Calculate turnover ratio (sales / current stock)
-    const turnoverRatio = topMovers.map((item) => ({
+    const turnoverRatio = topMovers.map((item: typeof turnoverData[number]) => ({
       ...item,
       ratio:
         item.currentStock > 0
