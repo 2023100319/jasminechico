@@ -92,7 +92,7 @@ export function StockLevelsTab({ items }: StockLevelsTabProps) {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      {item.unitCost > 0 ? formatCurrency(Number(item.unitCost)) : "-"}
+                      {item.unitCost != null && item.unitCost > 0 ? formatCurrency(Number(item.unitCost)) : "-"}
                     </td>
                     <td className="px-6 py-4 text-slate-500">
                       {item.lastPurchaseDate

@@ -26,7 +26,7 @@ async function updateInventoryStatus(inventoryItemId: number) {
 // PATCH: Receive a purchase order
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -34,7 +34,8 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const purchaseId = parseInt(params.id);
+    const { id: idParam } = await params;
+    const purchaseId = parseInt(idParam);
 
     // Get the purchase order
     const purchase = await prisma.purchaseOrder.findUnique({
@@ -64,7 +65,7 @@ export async function PATCH(
         before,
         after,
         reason: `Purchase received from ${purchase.supplier || "supplier"}`,
-        createdById: parseInt(session.user.id),
+        createdById: parseInt(session.user.id ?? "0"),
       },
     });
 
@@ -86,7 +87,7 @@ export async function PATCH(
         unitCost: purchase.unitCost,
         totalCost: purchase.quantity * purchase.unitCost,
         supplier: purchase.supplier,
-        purchasedById: parseInt(session.user.id),
+        purchasedById: parseInt(session.user.id ?? "0"),
       },
     });
 

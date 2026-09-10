@@ -84,7 +84,7 @@ export async function POST(req: Request) {
         type,
         status: "PENDING",
         total,
-        createdById: parseInt(session.user.id),
+        createdById: parseInt(session.user.id ?? "0"),
         items: {
           create: orderItemsData,
         },

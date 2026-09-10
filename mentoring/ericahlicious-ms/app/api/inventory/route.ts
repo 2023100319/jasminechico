@@ -57,7 +57,7 @@ export async function POST(req: Request) {
         expiry: expiry ? new Date(expiry) : null,
         status: status || "GOOD",
         categoryId: parseInt(categoryId),
-        updatedById: parseInt(session.user.id),
+        updatedById: parseInt(session.user.id ?? "0"),
       },
       include: {
         category: true,

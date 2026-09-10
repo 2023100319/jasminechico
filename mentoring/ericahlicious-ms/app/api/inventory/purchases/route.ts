@@ -94,7 +94,7 @@ export async function POST(req: Request) {
         unitCost: parseFloat(unitCost),
         supplier: supplier || null,
         expectedDate: expectedDate ? new Date(expectedDate) : null,
-        purchasedById: parseInt(session.user.id),
+        purchasedById: parseInt(session.user.id ?? "0"),
       },
       include: {
         inventoryItem: { select: { id: true, name: true } },

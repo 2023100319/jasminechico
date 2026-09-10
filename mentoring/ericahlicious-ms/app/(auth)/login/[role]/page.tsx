@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
@@ -36,9 +36,9 @@ const ROLE_DASHBOARDS: Record<string, string> = {
 export default function LoginPage({
   params,
 }: {
-  params: { role: string };
+  params: Promise<{ role: string }>;
 }) {
-  const { role } = params;
+  const { role } = use(params);
   const config = ROLE_CONFIG[role];
   const router = useRouter();
 
@@ -48,8 +48,14 @@ export default function LoginPage({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Redirect to role selection if role is invalid — must be in useEffect, not render path
+  useEffect(() => {
+    if (!config) {
+      router.replace("/");
+    }
+  }, [config, router]);
+
   if (!config) {
-    router.push("/");
     return null;
   }
 

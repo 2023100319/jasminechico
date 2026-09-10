@@ -26,7 +26,7 @@ async function updateInventoryStatus(inventoryItemId: number) {
 // PATCH: Quick adjustment endpoint
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -34,7 +34,8 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const itemId = parseInt(params.id);
+    const { id: idParam } = await params;
+    const itemId = parseInt(idParam);
     const body = await req.json();
     const { quantity, type, reason } = body;
 
@@ -76,7 +77,7 @@ export async function PATCH(
         before,
         after,
         reason: reason || `${type.toLowerCase()} recorded`,
-        createdById: parseInt(session.user.id),
+        createdById: parseInt(session.user.id ?? "0"),
       },
       include: {
         inventoryItem: { select: { name: true } },

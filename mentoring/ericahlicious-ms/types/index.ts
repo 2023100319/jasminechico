@@ -64,6 +64,9 @@ export interface InventoryItem {
   category: InventoryCategory;
   updatedBy?: { name: string } | null;
   updatedAt: string;
+  reorderLevel?: number | null;
+  unitCost?: number | null;
+  lastPurchaseDate?: string | null;
 }
 
 export interface OrderItem {

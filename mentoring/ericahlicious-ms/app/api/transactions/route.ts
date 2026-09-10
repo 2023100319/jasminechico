@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     const transaction = await prisma.transaction.create({
       data: {
         filename,
-        generatedById: parseInt(session.user.id),
+        generatedById: parseInt(session.user.id ?? "0"),
       },
       include: {
         generatedBy: {

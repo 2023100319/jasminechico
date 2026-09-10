@@ -6,7 +6,7 @@ import type { Role } from "@/types";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -19,7 +19,8 @@ export async function PATCH(
     // However, only Owner can change roles of other Owners or Admins.
     // For simplicity, let's just do a basic auth check.
 
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
     if (isNaN(id)) {
       return new NextResponse("Invalid ID", { status: 400 });
     }

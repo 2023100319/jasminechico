@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -12,7 +12,8 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
     if (isNaN(id)) {
       return new NextResponse("Invalid ID", { status: 400 });
     }
@@ -28,7 +29,7 @@ export async function PATCH(
     if (status) updateData.status = status;
     if (categoryId) updateData.categoryId = parseInt(categoryId);
 
-    updateData.updatedById = parseInt(session.user.id);
+    updateData.updatedById = parseInt(session.user.id ?? "0");
 
     const inventoryItem = await prisma.inventoryItem.update({
       where: { id },

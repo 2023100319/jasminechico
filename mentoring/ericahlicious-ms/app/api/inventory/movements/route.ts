@@ -132,7 +132,7 @@ export async function POST(req: Request) {
         before,
         after,
         reason: reason || null,
-        createdById: parseInt(session.user.id),
+        createdById: parseInt(session.user.id ?? "0"),
       },
       include: {
         inventoryItem: { select: { name: true } },

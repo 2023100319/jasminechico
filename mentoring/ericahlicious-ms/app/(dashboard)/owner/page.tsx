@@ -18,7 +18,7 @@ export default async function OwnerDashboard() {
   const todayOrders = await prisma.order.count({
     where: { createdAt: { gte: today } },
   });
-  
+
   const totalRevenueData = await prisma.order.aggregate({
     _sum: { total: true },
     where: { isPaid: true, status: "COMPLETED", createdAt: { gte: today } }
@@ -49,7 +49,7 @@ export default async function OwnerDashboard() {
   ];
 
   const inventoryItems = await prisma.inventoryItem.findMany({
-      include: { category: true, updatedBy: { select: { name: true } } }
+    include: { category: true, updatedBy: { select: { name: true } } }
   });
   const lowStockItems = inventoryItems.filter(i => i.status === "LOW" || i.status === "OUT_OF_STOCK");
 

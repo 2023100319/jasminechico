@@ -96,7 +96,7 @@ async function deductInventoryForOrder(orderId: number, userId: number) {
 // PATCH: Update order status
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -104,7 +104,8 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const orderId = parseInt(params.id);
+    const { id: idParam } = await params;
+    const orderId = parseInt(idParam);
     const body = await req.json();
     const { status, isPaid } = body;
 
@@ -126,7 +127,7 @@ export async function PATCH(
 
     // If status is changing to COMPLETED, deduct from inventory
     if (status === "COMPLETED" && order.status !== "COMPLETED") {
-      await deductInventoryForOrder(orderId, parseInt(session.user.id));
+      await deductInventoryForOrder(orderId, parseInt(session.user.id ?? "0"));
     }
 
     // If marking as paid and completed, create payment record
@@ -171,7 +172,7 @@ export async function PATCH(
 // GET: Retrieve single order
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -179,7 +180,8 @@ export async function GET(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const orderId = parseInt(params.id);
+    const { id: idParam } = await params;
+    const orderId = parseInt(idParam);
 
     const order = await prisma.order.findUnique({
       where: { id: orderId },
@@ -210,7 +212,7 @@ export async function GET(
 // DELETE: Cancel order
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -218,7 +220,8 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const orderId = parseInt(params.id);
+    const { id: idParam } = await params;
+    const orderId = parseInt(idParam);
 
     const order = await prisma.order.findUnique({
       where: { id: orderId },

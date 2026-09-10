@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -12,7 +12,8 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
     if (isNaN(id)) {
       return new NextResponse("Invalid ID", { status: 400 });
     }
@@ -55,14 +56,15 @@ export async function PATCH(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
         if (!session?.user) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
-        const id = parseInt(params.id);
+        const { id: idParam } = await params;
+        const id = parseInt(idParam);
         if (isNaN(id)) {
             return new NextResponse("Invalid ID", { status: 400 });
         }

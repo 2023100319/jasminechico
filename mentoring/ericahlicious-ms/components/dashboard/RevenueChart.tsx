@@ -39,7 +39,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
             tickFormatter={(v) => `₱${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
           />
           <Tooltip
-            formatter={(value: number) => [formatCurrency(value), ""]}
+            formatter={(value) => [formatCurrency(Number(value ?? 0)), ""]}
             contentStyle={{
               borderRadius: "12px",
               border: "1px solid #e2e8f0",

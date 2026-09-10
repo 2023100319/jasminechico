@@ -37,22 +37,22 @@ export async function GET(req: Request) {
       OUT_OF_STOCK: 0,
     };
 
-    statusCounts.forEach((count) => {
+    statusCounts.forEach((count: typeof statusCounts[number]) => {
       distribution[count.status as keyof typeof distribution] = count._count;
     });
 
     // Get items below reorder level
     const lowStockItems = items.filter(
-      (item) => item.stock <= item.reorderLevel
+      (item: typeof items[number]) => item.stock <= item.reorderLevel
     );
 
     // Get out of stock items
-    const outOfStockItems = items.filter((item) => item.stock <= 0);
+    const outOfStockItems = items.filter((item: typeof items[number]) => item.stock <= 0);
 
     return NextResponse.json({
       distribution,
       totalItems: items.length,
-      lowStockItems: lowStockItems.map((item) => ({
+      lowStockItems: lowStockItems.map((item: typeof items[number]) => ({
         id: item.id,
         name: item.name,
         current: item.stock,
@@ -60,7 +60,7 @@ export async function GET(req: Request) {
         suggested: Math.ceil(item.reorderLevel * 2.5),
         category: item.category.name,
       })),
-      outOfStockItems: outOfStockItems.map((item) => ({
+      outOfStockItems: outOfStockItems.map((item: typeof items[number]) => ({
         id: item.id,
         name: item.name,
         category: item.category.name,

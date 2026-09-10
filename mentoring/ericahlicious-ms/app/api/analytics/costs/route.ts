@@ -52,7 +52,7 @@ export async function GET(req: Request) {
       }
     >();
 
-    purchases.forEach((purchase) => {
+    purchases.forEach((purchase: typeof purchases[number]) => {
       const category = purchase.inventoryItem.category.name;
 
       if (!costByCategory.has(category)) {

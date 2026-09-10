@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     // For simplicity, we just return mock aggregated data based on period.
     // In a real scenario, this would aggregate actual orders and daily expenses within the given timeframe.
 
-    let data = [];
+    let data: { period: string; revenue: number; expenses: number; profit: number; orders: number }[] = [];
     if (period === "week") {
       data = [
         { period: "Mon", revenue: 5000, expenses: 2000, profit: 3000, orders: 45 },
