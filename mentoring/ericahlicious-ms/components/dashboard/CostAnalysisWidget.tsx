@@ -28,21 +28,21 @@ export function CostAnalysisWidget() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await fetch("/api/analytics/costs?days=30");
+        if (!res.ok) throw new Error("Failed to load");
+        const result = await res.json();
+        setData(result);
+      } catch {
+        console.error("Failed to load cost data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadData();
   }, []);
-
-  const loadData = async () => {
-    try {
-      const res = await fetch("/api/analytics/costs?days=30");
-      if (!res.ok) throw new Error("Failed to load");
-      const result = await res.json();
-      setData(result);
-    } catch (err) {
-      console.error("Failed to load cost data");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (

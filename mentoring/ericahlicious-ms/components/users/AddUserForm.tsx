@@ -28,7 +28,7 @@ export function AddUserForm({ onClose, onSuccess, initialData }: AddUserFormProp
       const url = initialData ? `/api/users/${initialData.id}` : "/api/users";
       const method = initialData ? "PATCH" : "POST";
 
-      const bodyData: any = { name, username, role };
+      const bodyData: Record<string, string> = { name, username, role };
       if (password) bodyData.password = password;
       
       // Basic validation for new users
@@ -48,8 +48,8 @@ export function AddUserForm({ onClose, onSuccess, initialData }: AddUserFormProp
       }
       
       onSuccess();
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

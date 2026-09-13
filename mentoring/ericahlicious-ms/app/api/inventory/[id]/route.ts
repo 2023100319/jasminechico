@@ -21,7 +21,7 @@ export async function PATCH(
     const body = await req.json();
     const { name, stock, supplier, expiry, status, categoryId } = body;
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (name) updateData.name = name;
     if (stock) updateData.stock = stock;
     if (supplier !== undefined) updateData.supplier = supplier;

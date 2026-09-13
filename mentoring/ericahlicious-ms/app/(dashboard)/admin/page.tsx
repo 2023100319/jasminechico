@@ -46,7 +46,7 @@ export default async function AdminDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900">Admin Dashboard</h1>
-        <p className="text-sm text-slate-500">Overview of today's performance</p>
+        <p className="text-sm text-slate-500">Overview of today&apos;s performance</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

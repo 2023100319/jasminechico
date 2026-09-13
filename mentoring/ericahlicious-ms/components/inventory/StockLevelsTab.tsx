@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import { Search } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import type { InventoryItem } from "@/types";
 
@@ -11,17 +11,12 @@ interface StockLevelsTabProps {
 
 export function StockLevelsTab({ items }: StockLevelsTabProps) {
   const [search, setSearch] = useState("");
-  const [filteredItems, setFilteredItems] = useState(items);
 
-  useEffect(() => {
-    setFilteredItems(
-      items.filter(
-        (item) =>
-          item.name.toLowerCase().includes(search.toLowerCase()) ||
-          item.category.name.toLowerCase().includes(search.toLowerCase())
-      )
-    );
-  }, [search, items]);
+  const filteredItems = items.filter(
+    (item) =>
+      item.name.toLowerCase().includes(search.toLowerCase()) ||
+      item.category.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -17,21 +17,21 @@ export function ReorderRecommendationsWidget() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadRecommendations = async () => {
+      try {
+        const res = await fetch("/api/analytics/inventory-health");
+        if (!res.ok) throw new Error("Failed to load");
+        const data = await res.json();
+        setItems(data.lowStockItems || []);
+      } catch {
+        console.error("Failed to load recommendations");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadRecommendations();
   }, []);
-
-  const loadRecommendations = async () => {
-    try {
-      const res = await fetch("/api/analytics/inventory-health");
-      if (!res.ok) throw new Error("Failed to load");
-      const data = await res.json();
-      setItems(data.lowStockItems || []);
-    } catch (err) {
-      console.error("Failed to load recommendations");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -43,8 +43,6 @@ export function ReorderRecommendationsWidget() {
 
   const criticalItems = items.filter((item) => item.current === 0);
   const lowItems = items.filter((item) => item.current > 0 && item.current <= item.reorderLevel);
-
-  const totalRecommendedCost = items.reduce((sum, item) => sum + item.suggested * 50, 0); // Approximate
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-6">

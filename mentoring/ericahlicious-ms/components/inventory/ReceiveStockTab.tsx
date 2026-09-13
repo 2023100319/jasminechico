@@ -22,22 +22,22 @@ export function ReceiveStockTab() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    const loadPurchases = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/inventory/purchases?status=PENDING");
+        if (!res.ok) throw new Error("Failed to load purchases");
+        const data = await res.json();
+        setPurchases(data.data || []);
+      } catch {
+        setError("Failed to load pending purchases");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadPurchases();
   }, []);
-
-  const loadPurchases = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/inventory/purchases?status=PENDING");
-      if (!res.ok) throw new Error("Failed to load purchases");
-      const data = await res.json();
-      setPurchases(data.data || []);
-    } catch (err) {
-      setError("Failed to load pending purchases");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleReceive = async (purchaseId: number) => {
     try {

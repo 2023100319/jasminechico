@@ -30,21 +30,21 @@ export function StockHealthWidget() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await fetch("/api/analytics/inventory-health");
+        if (!res.ok) throw new Error("Failed to load");
+        const result = await res.json();
+        setData(result);
+      } catch {
+        console.error("Failed to load stock health");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadData();
   }, []);
-
-  const loadData = async () => {
-    try {
-      const res = await fetch("/api/analytics/inventory-health");
-      if (!res.ok) throw new Error("Failed to load");
-      const result = await res.json();
-      setData(result);
-    } catch (err) {
-      console.error("Failed to load stock health");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (

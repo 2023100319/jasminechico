@@ -121,7 +121,7 @@ export async function PATCH(
       return new NextResponse("Order not found", { status: 404 });
     }
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (status) updateData.status = status;
     if (isPaid !== undefined) updateData.isPaid = isPaid;
 

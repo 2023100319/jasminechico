@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get("categoryId");
 
-    const whereClause: any = {};
+    const whereClause: Record<string, unknown> = {};
     if (categoryId) whereClause.categoryId = parseInt(categoryId);
 
     const inventoryItems = await prisma.inventoryItem.findMany({

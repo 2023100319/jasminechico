@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     const categoryId = searchParams.get("categoryId");
     const isArchived = searchParams.get("isArchived");
 
-    const whereClause: any = {};
+    const whereClause: Record<string, unknown> = {};
     if (categoryId) whereClause.categoryId = parseInt(categoryId);
     if (isArchived !== null) whereClause.isArchived = isArchived === "true";
 

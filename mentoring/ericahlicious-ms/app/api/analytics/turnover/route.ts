@@ -46,7 +46,7 @@ export async function GET(req: Request) {
 
     // Create a map for quick lookup
     const movementMap = new Map<number, { count: number; totalChange: number }>(
-      movements.map((m: any) => [
+      movements.map((m: { inventoryItemId: number; _count: number; _sum: { change: number | null } }) => [
         m.inventoryItemId,
         { count: m._count, totalChange: Number(m._sum.change ?? 0) },
       ])
@@ -64,7 +64,7 @@ export async function GET(req: Request) {
         salesCount: movementMap.get(item.id)?.count ?? 0,
         totalSalesQty: Math.abs(movementMap.get(item.id)?.totalChange ?? 0),
       }))
-      .sort((a: any, b: any) => b.salesCount - a.salesCount);
+      .sort((a, b) => b.salesCount - a.salesCount);
 
     // Get top 10 fastest moving
     const topMovers = turnoverData.slice(0, 10);

@@ -25,21 +25,21 @@ export function TurnoverWidget() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await fetch("/api/analytics/turnover?days=30");
+        if (!res.ok) throw new Error("Failed to load");
+        const result = await res.json();
+        setData(result);
+      } catch {
+        console.error("Failed to load turnover data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadData();
   }, []);
-
-  const loadData = async () => {
-    try {
-      const res = await fetch("/api/analytics/turnover?days=30");
-      if (!res.ok) throw new Error("Failed to load");
-      const result = await res.json();
-      setData(result);
-    } catch (err) {
-      console.error("Failed to load turnover data");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (

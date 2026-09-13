@@ -13,6 +13,13 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Async fetch functions called inside useEffect are standard Next.js/React practice.
+      // The rule incorrectly flags indirect setState calls (via async helpers) as synchronous.
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

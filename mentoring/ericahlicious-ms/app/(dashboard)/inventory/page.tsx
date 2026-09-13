@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, RefreshCw, Loader2 } from "lucide-react";
 import { StockLevelsTab } from "@/components/inventory/StockLevelsTab";
 import { AddPurchaseForm } from "@/components/inventory/AddPurchaseForm";
@@ -14,23 +14,23 @@ export default function InventoryOperationsPage() {
   const [loading, setLoading] = useState(true);
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
 
-  useEffect(() => {
-    loadInventory();
-  }, []);
-
-  const loadInventory = async () => {
+  const loadInventory = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch("/api/inventory");
       if (!res.ok) throw new Error("Failed to load inventory");
       const data = await res.json();
       setItems(data);
-    } catch (err) {
+    } catch {
       console.error("Failed to load inventory items");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadInventory();
+  }, [loadInventory]);
 
   const handlePurchaseSuccess = () => {
     setShowPurchaseForm(false);
@@ -71,7 +71,7 @@ export default function InventoryOperationsPage() {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as Parameters<typeof setActiveTab>[0])}
             className={`px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
               activeTab === tab.id
                 ? "bg-blue-600 text-white shadow-md"

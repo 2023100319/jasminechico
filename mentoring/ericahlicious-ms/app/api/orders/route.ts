@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     const status = searchParams.get("status");
     const isPaid = searchParams.get("isPaid");
 
-    const whereClause: any = {};
+    const whereClause: Record<string, unknown> = {};
     if (status) whereClause.status = status;
     if (isPaid !== null) whereClause.isPaid = isPaid === "true";
 

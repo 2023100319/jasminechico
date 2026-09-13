@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     const page = searchParams.get("page") || "1";
     const limit = searchParams.get("limit") || "20";
 
-    const whereClause: any = {};
+    const whereClause: Record<string, unknown> = {};
     if (status) {
       whereClause.status = status;
     }

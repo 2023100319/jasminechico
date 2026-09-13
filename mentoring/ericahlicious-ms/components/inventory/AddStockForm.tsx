@@ -47,7 +47,7 @@ export function AddStockForm({ categories, onClose, onSuccess, initialData }: Ad
       if (!res.ok) throw new Error("Failed to save inventory item");
       
       onSuccess();
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);

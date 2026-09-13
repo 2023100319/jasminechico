@@ -62,7 +62,7 @@ export function AddMenuItemForm({ categories, onClose, onSuccess, initialData }:
       if (!res.ok) throw new Error("Failed to save menu item");
       
       onSuccess();
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);

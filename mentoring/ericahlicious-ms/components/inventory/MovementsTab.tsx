@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 interface StockMovement {
@@ -23,25 +23,25 @@ export function MovementsTab() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    const loadMovements = async () => {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams({ days: "90" });
+        if (searchType) params.append("type", searchType);
+
+        const res = await fetch(`/api/inventory/movements?${params}`);
+        if (!res.ok) throw new Error("Failed to load movements");
+        const data = await res.json();
+        setMovements(data.data || []);
+      } catch {
+        setError("Failed to load stock movements");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadMovements();
-  }, []);
-
-  const loadMovements = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({ days: "90" });
-      if (searchType) params.append("type", searchType);
-
-      const res = await fetch(`/api/inventory/movements?${params}`);
-      if (!res.ok) throw new Error("Failed to load movements");
-      const data = await res.json();
-      setMovements(data.data || []);
-    } catch (err) {
-      setError("Failed to load stock movements");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [searchType]);
 
   const getTypeColor = (type: string) => {
     switch (type) {

@@ -28,7 +28,7 @@ export async function PATCH(
     const body = await req.json();
     const { name, username, password, role: newRole, status } = body;
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (name) updateData.name = name;
     if (username) updateData.username = username;
     if (newRole) updateData.role = newRole;
