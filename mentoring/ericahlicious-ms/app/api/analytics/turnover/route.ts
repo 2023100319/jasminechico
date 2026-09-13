@@ -2,6 +2,17 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
+interface TurnoverEntry {
+  id: number;
+  name: string;
+  category: string;
+  currentStock: number;
+  reorderLevel: number;
+  unitCost: number;
+  salesCount: number;
+  totalSalesQty: number;
+}
+
 // GET stock turnover analysis
 export async function GET(req: Request) {
   try {
@@ -53,8 +64,7 @@ export async function GET(req: Request) {
     );
 
     // Build turnover data
-    const turnoverData = items
-      .map((item: typeof items[number]) => ({
+    const turnoverData: TurnoverEntry[] = items.map((item: typeof items[number]) => ({
         id: item.id,
         name: item.name,
         category: item.category.name,
@@ -63,8 +73,8 @@ export async function GET(req: Request) {
         unitCost: item.unitCost,
         salesCount: movementMap.get(item.id)?.count ?? 0,
         totalSalesQty: Math.abs(movementMap.get(item.id)?.totalChange ?? 0),
-      }))
-      .sort((a, b) => b.salesCount - a.salesCount);
+      }));
+    turnoverData.sort((a: TurnoverEntry, b: TurnoverEntry) => b.salesCount - a.salesCount);
 
     // Get top 10 fastest moving
     const topMovers = turnoverData.slice(0, 10);
