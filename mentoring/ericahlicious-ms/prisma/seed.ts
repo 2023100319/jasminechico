@@ -175,7 +175,7 @@ async function main() {
       create: {
         id: 1,
         name: "Fresh Milk",
-        stock: "8,000 ml",
+        stock: 8000,
         supplier: "Dairy Fresh Inc.",
         status: "GOOD",
         categoryId: dairyCategory.id,
@@ -187,7 +187,7 @@ async function main() {
       create: {
         id: 2,
         name: "Butter",
-        stock: "500g",
+        stock: 500,
         supplier: "Anchor Foods",
         status: "LOW",
         categoryId: dairyCategory.id,
@@ -202,7 +202,7 @@ async function main() {
       create: {
         id: 3,
         name: "Spaghetti Noodles",
-        stock: "10 kg",
+        stock: 10,
         supplier: "Del Monte",
         status: "GOOD",
         categoryId: pastaCat.id,

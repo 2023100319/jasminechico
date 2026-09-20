@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-
+import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
 export async function GET(req: Request) {
@@ -12,37 +12,106 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const period = searchParams.get("period") || "week"; // day, week, month, year
 
-    // For simplicity, we just return mock aggregated data based on period.
-    // In a real scenario, this would aggregate actual orders and daily expenses within the given timeframe.
-
     let data: { period: string; revenue: number; expenses: number; profit: number; orders: number }[] = [];
+    
+    const now = new Date();
+    let startDate = new Date();
+    
     if (period === "week") {
-      data = [
-        { period: "Mon", revenue: 5000, expenses: 2000, profit: 3000, orders: 45 },
-        { period: "Tue", revenue: 6500, expenses: 2200, profit: 4300, orders: 58 },
-        { period: "Wed", revenue: 4800, expenses: 1800, profit: 3000, orders: 42 },
-        { period: "Thu", revenue: 7200, expenses: 2500, profit: 4700, orders: 65 },
-        { period: "Fri", revenue: 9000, expenses: 3000, profit: 6000, orders: 80 },
-        { period: "Sat", revenue: 12000, expenses: 4000, profit: 8000, orders: 110 },
-        { period: "Sun", revenue: 10500, expenses: 3500, profit: 7000, orders: 95 },
-      ];
+      startDate.setDate(now.getDate() - 6);
+      startDate.setHours(0, 0, 0, 0);
     } else if (period === "month") {
-      data = [
-        { period: "Week 1", revenue: 35000, expenses: 15000, profit: 20000, orders: 320 },
-        { period: "Week 2", revenue: 38000, expenses: 16000, profit: 22000, orders: 350 },
-        { period: "Week 3", revenue: 42000, expenses: 18000, profit: 24000, orders: 380 },
-        { period: "Week 4", revenue: 45000, expenses: 20000, profit: 25000, orders: 410 },
-      ];
+      startDate.setDate(now.getDate() - 29);
+      startDate.setHours(0, 0, 0, 0);
     } else if (period === "year") {
-      data = [
-        { period: "Jan", revenue: 120000, expenses: 60000, profit: 60000, orders: 1200 },
-        { period: "Feb", revenue: 135000, expenses: 65000, profit: 70000, orders: 1350 },
-        { period: "Mar", revenue: 150000, expenses: 70000, profit: 80000, orders: 1500 },
-        { period: "Apr", revenue: 140000, expenses: 68000, profit: 72000, orders: 1400 },
-        { period: "May", revenue: 160000, expenses: 75000, profit: 85000, orders: 1600 },
-        { period: "Jun", revenue: 180000, expenses: 80000, profit: 100000, orders: 1800 },
-      ];
+      startDate.setMonth(now.getMonth() - 11);
+      startDate.setDate(1);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (period === "day") {
+      startDate.setHours(0, 0, 0, 0);
     }
+
+    const orders = await prisma.order.findMany({
+      where: { status: "COMPLETED", isPaid: true, createdAt: { gte: startDate } },
+      select: { createdAt: true, total: true },
+    });
+
+    const expenses = await prisma.dailyExpense.findMany({
+      where: { date: { gte: startDate } },
+      select: { date: true, amount: true },
+    });
+
+    const periodMap = new Map();
+
+    if (period === "day") {
+      for (let i = 0; i < 24; i++) {
+        const label = `${i.toString().padStart(2, '0')}:00`;
+        periodMap.set(label, { period: label, revenue: 0, expenses: 0, profit: 0, orders: 0 });
+      }
+      orders.forEach(o => {
+        const label = `${o.createdAt.getHours().toString().padStart(2, '0')}:00`;
+        if (periodMap.has(label)) {
+          periodMap.get(label).revenue += Number(o.total);
+          periodMap.get(label).orders += 1;
+        }
+      });
+      expenses.forEach(e => {
+        const label = `${e.date.getHours().toString().padStart(2, '0')}:00`;
+        if (periodMap.has(label)) {
+          periodMap.get(label).expenses += Number(e.amount);
+        }
+      });
+    } else if (period === "year") {
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const label = `${months[d.getMonth()]} ${d.getFullYear()}`;
+        periodMap.set(label, { period: label, revenue: 0, expenses: 0, profit: 0, orders: 0 });
+      }
+      orders.forEach(o => {
+        const label = `${months[o.createdAt.getMonth()]} ${o.createdAt.getFullYear()}`;
+        if (periodMap.has(label)) {
+          periodMap.get(label).revenue += Number(o.total);
+          periodMap.get(label).orders += 1;
+        }
+      });
+      expenses.forEach(e => {
+        const label = `${months[e.date.getMonth()]} ${e.date.getFullYear()}`;
+        if (periodMap.has(label)) {
+          periodMap.get(label).expenses += Number(e.amount);
+        }
+      });
+    } else {
+      // week and month (Group by day)
+      const numDays = period === "week" ? 7 : 30;
+      for (let i = numDays - 1; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const label = `${d.getMonth()+1}/${d.getDate()}`;
+        periodMap.set(label, { period: label, revenue: 0, expenses: 0, profit: 0, orders: 0 });
+      }
+      orders.forEach(o => {
+        const label = `${o.createdAt.getMonth()+1}/${o.createdAt.getDate()}`;
+        if (periodMap.has(label)) {
+          periodMap.get(label).revenue += Number(o.total);
+          periodMap.get(label).orders += 1;
+        }
+      });
+      expenses.forEach(e => {
+        const label = `${e.date.getMonth()+1}/${e.date.getDate()}`;
+        if (periodMap.has(label)) {
+          periodMap.get(label).expenses += Number(e.amount);
+        }
+      });
+    }
+    
+    data = Array.from(periodMap.values()).map(e => ({
+      period: e.period,
+      revenue: e.revenue,
+      expenses: e.expenses,
+      profit: e.revenue - e.expenses,
+      orders: e.orders
+    }));
 
     return NextResponse.json(data);
   } catch (error) {

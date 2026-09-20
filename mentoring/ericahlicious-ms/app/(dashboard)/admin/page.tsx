@@ -23,24 +23,78 @@ export default async function AdminDashboard() {
     where: { status: "ACTIVE" }
   });
 
-  // Mock data for charts
-  const revenueData = [
-    { period: "Mon", revenue: 5000, expenses: 2000, profit: 3000, orders: 45 },
-    { period: "Tue", revenue: 6500, expenses: 2200, profit: 4300, orders: 58 },
-    { period: "Wed", revenue: 4800, expenses: 1800, profit: 3000, orders: 42 },
-    { period: "Thu", revenue: 7200, expenses: 2500, profit: 4700, orders: 65 },
-    { period: "Fri", revenue: 9000, expenses: 3000, profit: 6000, orders: 80 },
-    { period: "Sat", revenue: 12000, expenses: 4000, profit: 8000, orders: 110 },
-    { period: "Sun", revenue: 10500, expenses: 3500, profit: 7000, orders: 95 },
-  ];
+  // Real data for charts (Last 7 days)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
 
-  const topItems = [
-    { name: "Chicken Alfredo Pasta", count: 145, revenue: 40600 },
-    { name: "Spanish Latte", count: 120, revenue: 22200 },
-    { name: "Filipino Breakfast Danggit", count: 95, revenue: 30400 },
-    { name: "Matcha Latte", count: 80, revenue: 15200 },
-    { name: "Blueberry Cheesecake", count: 65, revenue: 13000 },
-  ];
+  const recentOrders = await prisma.order.findMany({
+    where: { status: "COMPLETED", isPaid: true, createdAt: { gte: sevenDaysAgo } },
+    select: { createdAt: true, total: true },
+  });
+
+  const recentExpenses = await prisma.dailyExpense.findMany({
+    where: { date: { gte: sevenDaysAgo } },
+    select: { date: true, amount: true },
+  });
+
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const revenueMap = new Map();
+  
+  // Initialize last 7 days
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(sevenDaysAgo);
+    d.setDate(d.getDate() + i);
+    const label = daysOfWeek[d.getDay()];
+    revenueMap.set(label, { period: label, revenue: 0, expenses: 0, profit: 0, orders: 0, date: d });
+  }
+
+  recentOrders.forEach((o) => {
+    const label = daysOfWeek[o.createdAt.getDay()];
+    if (revenueMap.has(label)) {
+      const entry = revenueMap.get(label);
+      entry.revenue += Number(o.total);
+      entry.orders += 1;
+    }
+  });
+
+  recentExpenses.forEach((e) => {
+    const label = daysOfWeek[e.date.getDay()];
+    if (revenueMap.has(label)) {
+      revenueMap.get(label).expenses += Number(e.amount);
+    }
+  });
+
+  const revenueData = Array.from(revenueMap.values()).map(e => {
+    const profit = e.revenue - e.expenses;
+    return {
+      period: e.period,
+      revenue: e.revenue,
+      expenses: e.expenses,
+      profit: profit,
+      orders: e.orders
+    };
+  });
+
+  // Top Items
+  const topOrderItems = await prisma.orderItem.groupBy({
+    by: ['menuItemId'],
+    _sum: { quantity: true },
+    orderBy: { _sum: { quantity: 'desc' } },
+    take: 5,
+  });
+
+  const topItems = [];
+  for (const item of topOrderItems) {
+    const menuItem = await prisma.menuItem.findUnique({ where: { id: item.menuItemId } });
+    if (menuItem) {
+      topItems.push({
+        name: menuItem.name,
+        count: item._sum.quantity || 0,
+        revenue: Number(menuItem.price) * (item._sum.quantity || 0),
+      });
+    }
+  }
 
   return (
     <div className="space-y-6">
