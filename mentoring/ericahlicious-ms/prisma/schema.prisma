@@ -5,63 +5,23 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  OWNER
-  ADMIN
-  SUPERVISOR
-}
-
-enum OrderStatus {
-  PENDING
-  PREPARING
-  READY
-  COMPLETED
-  CANCELLED
-}
-
-enum OrderType {
-  DINE_IN
-  TAKE_OUT
-}
-
-enum StockStatus {
-  GOOD
-  LOW
-  OUT_OF_STOCK
-}
-
-enum UserStatus {
-  ACTIVE
-  ARCHIVED
-}
-
-enum StockMovementType {
-  STOCK_IN
-  ADJUSTMENT
-  WASTAGE
-  EXPIRY
-  SALES_DEDUCT
-}
-
-enum PurchaseStatus {
-  PENDING
-  RECEIVED
-}
+// SQLite does not support enums — role/status values are stored as plain strings.
+// Valid values are enforced at the application layer.
 
 model User {
-  id          Int        @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
-  username    String     @unique
+  username    String    @unique
   password    String
-  role        Role
-  status      UserStatus @default(ACTIVE)
+  role        String    // OWNER | ADMIN | SUPERVISOR
+  status      String    @default("ACTIVE") // ACTIVE | ARCHIVED
   lastActive  DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   orders           Order[]
   transactions     Transaction[]
@@ -80,7 +40,7 @@ model MenuCategory {
 model MenuItem {
   id          Int              @id @default(autoincrement())
   name        String
-  price       Decimal          @db.Decimal(10, 2)
+  price       Decimal
   imageUrl    String?
   isArchived  Boolean          @default(false)
   categoryId  Int
@@ -105,41 +65,41 @@ model InventoryCategory {
 }
 
 model InventoryItem {
-  id          Int               @id @default(autoincrement())
-  name        String
-  stock       Decimal           @db.Decimal(10, 2)
-  supplier    String?
-  expiry      DateTime?
-  status      StockStatus       @default(GOOD)
-  categoryId  Int
-  category    InventoryCategory @relation(fields: [categoryId], references: [id])
-  reorderLevel Decimal           @default(0) @db.Decimal(10, 2)
-  unitCost    Decimal           @default(0) @db.Decimal(10, 2)
+  id               Int               @id @default(autoincrement())
+  name             String
+  stock            Decimal
+  supplier         String?
+  expiry           DateTime?
+  status           String            @default("GOOD") // GOOD | LOW | OUT_OF_STOCK
+  categoryId       Int
+  category         InventoryCategory @relation(fields: [categoryId], references: [id])
+  reorderLevel     Decimal           @default(0)
+  unitCost         Decimal           @default(0)
   lastPurchaseDate DateTime?
-  updatedById Int?
-  updatedBy   User?             @relation("UpdatedBy", fields: [updatedById], references: [id])
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  updatedById      Int?
+  updatedBy        User?             @relation("UpdatedBy", fields: [updatedById], references: [id])
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
-  movements StockMovement[]
-  purchases StockPurchase[]
+  movements      StockMovement[]
+  purchases      StockPurchase[]
   purchaseOrders PurchaseOrder[]
 }
 
 model Order {
-  id          Int         @id @default(autoincrement())
-  orderCode   String      @unique
+  id          Int       @id @default(autoincrement())
+  orderCode   String    @unique
   tableNum    String?
-  type        OrderType   @default(DINE_IN)
-  status      OrderStatus @default(PENDING)
-  total       Decimal     @db.Decimal(10, 2)
-  isPaid      Boolean     @default(false)
+  type        String    @default("DINE_IN")   // DINE_IN | TAKE_OUT
+  status      String    @default("PENDING")   // PENDING | PREPARING | READY | COMPLETED | CANCELLED
+  total       Decimal
+  isPaid      Boolean   @default(false)
   createdById Int?
-  createdBy   User?       @relation(fields: [createdById], references: [id])
+  createdBy   User?     @relation(fields: [createdById], references: [id])
   items       OrderItem[]
   payment     Payment?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model OrderItem {
@@ -155,7 +115,7 @@ model Payment {
   id      Int      @id @default(autoincrement())
   orderId Int      @unique
   order   Order    @relation(fields: [orderId], references: [id])
-  amount  Decimal  @db.Decimal(10, 2)
+  amount  Decimal
   paidAt  DateTime @default(now())
 }
 
@@ -169,24 +129,24 @@ model Transaction {
 
 model DailyExpense {
   id        Int      @id @default(autoincrement())
-  amount    Decimal  @db.Decimal(10, 2)
+  amount    Decimal
   date      DateTime
   note      String?
   createdAt DateTime @default(now())
 }
 
 model StockMovement {
-  id              Int               @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   inventoryItemId Int
-  inventoryItem   InventoryItem     @relation(fields: [inventoryItemId], references: [id])
-  type            StockMovementType
-  change          Decimal           @db.Decimal(10, 2)
-  before          Decimal           @db.Decimal(10, 2)
-  after           Decimal           @db.Decimal(10, 2)
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  type            String        // STOCK_IN | ADJUSTMENT | WASTAGE | EXPIRY | SALES_DEDUCT
+  change          Decimal
+  before          Decimal
+  after           Decimal
   reason          String?
   createdById     Int?
-  createdBy       User?             @relation(fields: [createdById], references: [id])
-  createdAt       DateTime          @default(now())
+  createdBy       User?         @relation(fields: [createdById], references: [id])
+  createdAt       DateTime      @default(now())
 
   @@index([inventoryItemId])
   @@index([createdAt])
@@ -197,9 +157,9 @@ model StockPurchase {
   id              Int           @id @default(autoincrement())
   inventoryItemId Int
   inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
-  quantity        Decimal       @db.Decimal(10, 2)
-  unitCost        Decimal       @db.Decimal(10, 2)
-  totalCost       Decimal       @db.Decimal(10, 2)
+  quantity        Decimal
+  unitCost        Decimal
+  totalCost       Decimal
   supplier        String?
   purchasedById   Int?
   purchasedBy     User?         @relation(fields: [purchasedById], references: [id])
@@ -213,10 +173,10 @@ model PurchaseOrder {
   id              Int           @id @default(autoincrement())
   inventoryItemId Int
   inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
-  quantity        Decimal       @db.Decimal(10, 2)
-  unitCost        Decimal       @db.Decimal(10, 2)
+  quantity        Decimal
+  unitCost        Decimal
   supplier        String?
-  status          PurchaseStatus @default(PENDING)
+  status          String        @default("PENDING") // PENDING | RECEIVED
   expectedDate    DateTime?
   receivedAt      DateTime?
   purchasedById   Int?
